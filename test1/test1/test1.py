@@ -126,8 +126,3 @@ if __name__ == '__main__':
         execute(args[0], 'moore-to-mealy')
     else:
         exit_help()      
-    
-
-    
-
-

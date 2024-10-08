@@ -11,10 +11,10 @@
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>test1</Name>
-    <RootNamespace>lab1</RootNamespace>
+    <RootNamespace>test1</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>D:\Curses\OS\lab1\lab1\lab1.py moore-to-mealy</CommandLineArguments>
+    <CommandLineArguments>D:\Curses\OS\lab1\lab1\lab1.py</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <TestFramework>Pytest</TestFramework>
   </PropertyGroup>
