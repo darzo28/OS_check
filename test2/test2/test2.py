@@ -57,6 +57,13 @@ def draw_graph(path, graph, option):
         out_signal = signals.get('out_signal') if option == Types.Mealy.value else graph.nodes[state_to]['out_signal']
         signals['label'] = f'{in_signal}/{out_signal}' if option == Types.Mealy.value else in_signal
 
+    if option == Types.Moore.value:
+        states_mapping = {}
+        for state, out in graph.nodes(data=True):
+            out_signal = out['out_signal']
+            states_mapping.update({state: f'{state}/{out_signal}'})
+        graph = nx.relabel_nodes(graph, states_mapping)
+
     A = nx.nx_agraph.to_agraph(graph)
     A.layout(prog='dot')
     A.draw(path)
