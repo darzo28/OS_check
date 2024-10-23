@@ -17,8 +17,9 @@ OUT_FORMATS = [
 def read_mealy(file):
     with open(file, newline='\n') as f:
         reader = csv.reader(f, delimiter=';')
-        graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         states = reader.__next__()[1:]
+	graph.add_nodes_from(states)
         for line in reader:
             in_signal = line[0]  
             transitions = line[1:]
@@ -30,7 +31,7 @@ def read_mealy(file):
 def read_moore(file):
     with open(file, newline='\n') as f:
         reader = csv.reader(f, delimiter=';')
-        graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         out_signals = reader.__next__()[1:]
         states = reader.__next__()[1:]
         for state, out_signal in zip(states, out_signals):

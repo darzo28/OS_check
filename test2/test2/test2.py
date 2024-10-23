@@ -3,7 +3,6 @@ import csv
 import os
 import subprocess
 import networkx as nx
-import pygraphviz as pgv
 from enum import Enum
 
 class Types(str, Enum):
@@ -13,8 +12,9 @@ class Types(str, Enum):
 def read_mealy(file):
     with open(file, newline='\n') as f:
         reader = csv.reader(f, delimiter=';')
-        graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         states = reader.__next__()[1:]
+        graph.add_nodes_from(states)
         for line in reader:
             in_signal = line[0]  
             transitions = line[1:]
@@ -26,7 +26,7 @@ def read_mealy(file):
 def read_moore(file):
     with open(file, newline='\n') as f:
         reader = csv.reader(f, delimiter=';')
-        graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         out_signals = reader.__next__()[1:]
         states = reader.__next__()[1:]
         for state, out_signal in zip(states, out_signals):
@@ -76,11 +76,12 @@ def process(graph, in_signals, option):
         next_state = None
         for neighbor in graph.neighbors(current_state):
             edge_data = graph.get_edge_data(current_state, neighbor)
-            if edge_data['in_signal'] == symbol:
-                next_state = neighbor
-                out_signal = edge_data['out_signal'] if option == Types.Mealy.value else graph.nodes[next_state]['out_signal']
-                output_sequence.append(out_signal)
-                break
+            for edge in edge_data.values():
+                if edge['in_signal'] == symbol:
+                    next_state = neighbor
+                    out_signal = edge['out_signal'] if option == Types.Mealy.value else graph.nodes[next_state]['out_signal']
+                    output_sequence.append(out_signal)
+                    break
             
         current_state = next_state
         

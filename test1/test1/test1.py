@@ -3,7 +3,6 @@ import csv
 import os
 import subprocess
 import networkx as nx
-import pygraphviz as pgv
 from enum import Enum
 
 class Types(str, Enum):
@@ -13,8 +12,9 @@ class Types(str, Enum):
 def read_mealy(file):
     with open(file, newline='\n') as f:
         reader = csv.reader(f, delimiter=';')
-        graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         states = reader.__next__()[1:]
+        graph.add_nodes_from(states)
         for line in reader:
             in_signal = line[0]  
             transitions = line[1:]
@@ -26,7 +26,7 @@ def read_mealy(file):
 def read_moore(file):
     with open(file, newline='\n') as f:
         reader = csv.reader(f, delimiter=';')
-        graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         out_signals = reader.__next__()[1:]
         states = reader.__next__()[1:]
         for state, out_signal in zip(states, out_signals):
@@ -76,11 +76,12 @@ def process(graph, in_signals, option):
         next_state = None
         for neighbor in graph.neighbors(current_state):
             edge_data = graph.get_edge_data(current_state, neighbor)
-            if edge_data['in_signal'] == symbol:
-                next_state = neighbor
-                out_signal = edge_data['out_signal'] if option == Types.Mealy.value else graph.nodes[next_state]['out_signal']
-                output_sequence.append(out_signal)
-                break
+            for edge in edge_data.values():
+                if edge['in_signal'] == symbol:
+                    next_state = neighbor
+                    out_signal = edge['out_signal'] if option == Types.Mealy.value else graph.nodes[next_state]['out_signal']
+                    output_sequence.append(out_signal)
+                    break
             
         current_state = next_state
         
@@ -96,14 +97,13 @@ def check(sequence, graph, option, order):
         print(f'Test {order} failed')
 
 def execute(execute_file, option):
-    i = 0
     folder_name = option.split('-')[0]
     output_type = option.split('-')[2]
     command = ['python3', execute_file] if execute_file.endswith('py') else [execute_file]
 
-    for input_file in os.listdir(f'..\{folder_name}\sequence'): 
-        sequence = f'..\{folder_name}\sequence\{input_file}'
-        in_path = f'..\{folder_name}\input\{input_file}'
+    for i in range(len(os.listdir(f'..\{folder_name}\sequence'))): 
+        sequence = f'..\{folder_name}\sequence\input{i}.csv'
+        in_path = f'..\{folder_name}\input\input{i}.csv'
         output = f'..\{folder_name}\output\output{i}.csv'
 
         input_path = f'..\{folder_name}\graphs\input{i}.png'
@@ -117,7 +117,6 @@ def execute(execute_file, option):
 
         check(sequence, output_graph, output_type, i)
         draw_graph(output_path, output_graph, output_type)
-        i += 1
 
 def exit_help():
     print('lab1.py <execute file> <mealy-to-moore|moore-to-mealy>')
