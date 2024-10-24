@@ -14,7 +14,7 @@
     <RootNamespace>test1</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>D:\Curses\OS\lab1\lab1\lab1.py</CommandLineArguments>
+    <CommandLineArguments>D:\Curses\OS\lab1\lab1\lab1.py mealy-to-moore</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <TestFramework>Pytest</TestFramework>
   </PropertyGroup>

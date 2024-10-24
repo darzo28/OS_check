@@ -12,7 +12,7 @@
     <Name>draw</Name>
     <RootNamespace>draw</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>moore D:\Curses\OS\lab1\lab1\input4.csv output.gif</CommandLineArguments>
+    <CommandLineArguments>mealy D:\Curses\OS\lab2\lab2\output2.csv D:\Curses\OS\lab2\lab2\out2.png</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

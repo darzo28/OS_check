@@ -5,6 +5,11 @@ import subprocess
 import networkx as nx
 from enum import Enum
 
+DELIMITER = '/'
+EMPTY = '-'
+IN_SIGNAL = 'in_signal'
+OUT_SIGNAL = 'out_signal'
+
 class Types(str, Enum):
     Mealy = 'mealy'
     Moore = 'moore'
@@ -13,13 +18,15 @@ def read_mealy(file):
     with open(file, newline='\n') as f:
         reader = csv.reader(f, delimiter=';')
         graph = nx.MultiDiGraph()
-        states = reader.__next__()[1:]
+        states = [EMPTY if state == '' else state for state in reader.__next__()[1:]]
         graph.add_nodes_from(states)
         for line in reader:
             in_signal = line[0]  
             transitions = line[1:]
             for transition, from_state in zip(transitions, states):
-                to_state, out_signal = transition.split('/')
+                split_result = [EMPTY] if transition == '' else transition.split(DELIMITER)
+                to_state, out_signal = split_result if len(split_result) == 2 else [split_result[0], DELIMITER.join(split_result[1:])]
+                out_signal = EMPTY if out_signal == '' else out_signal
                 graph.add_edge(from_state, to_state, in_signal=in_signal, out_signal=out_signal)
         return graph
 
@@ -27,13 +34,13 @@ def read_moore(file):
     with open(file, newline='\n') as f:
         reader = csv.reader(f, delimiter=';')
         graph = nx.MultiDiGraph()
-        out_signals = reader.__next__()[1:]
-        states = reader.__next__()[1:]
+        out_signals = [EMPTY if signal == '' else signal for signal in reader.__next__()[1:]]
+        states = [EMPTY if state == '' else state for state in reader.__next__()[1:]]
         for state, out_signal in zip(states, out_signals):
             graph.add_node(state, out_signal=out_signal)
         for line in reader:
             in_signal = line[0]
-            to_states = line[1:]
+            to_states = [EMPTY if state == '' else state for state in line[1:]]
             for from_state, to_state in zip(states, to_states):
                 graph.add_edge(from_state, to_state, in_signal=in_signal)
         return graph
@@ -53,14 +60,14 @@ def read_sequence(file):
 
 def draw_graph(path, graph, option):
     for state_from, state_to, signals in graph.edges(data=True):
-        in_signal = signals.get('in_signal')
-        out_signal = signals.get('out_signal') if option == Types.Mealy.value else graph.nodes[state_to]['out_signal']
+        in_signal = signals.get(IN_SIGNAL)
+        out_signal = signals.get(OUT_SIGNAL) if option == Types.Mealy.value else graph.nodes[state_to][OUT_SIGNAL]
         signals['label'] = f'{in_signal}/{out_signal}' if option == Types.Mealy.value else in_signal
 
     if option == Types.Moore.value:
         states_mapping = {}
         for state, out in graph.nodes(data=True):
-            out_signal = out['out_signal']
+            out_signal = out[OUT_SIGNAL]
             states_mapping.update({state: f'{state}/{out_signal}'})
         graph = nx.relabel_nodes(graph, states_mapping)
 
@@ -77,11 +84,16 @@ def process(graph, in_signals, option):
         for neighbor in graph.neighbors(current_state):
             edge_data = graph.get_edge_data(current_state, neighbor)
             for edge in edge_data.values():
-                if edge['in_signal'] == symbol:
+                if edge[IN_SIGNAL] == symbol:
                     next_state = neighbor
-                    out_signal = edge['out_signal'] if option == Types.Mealy.value else graph.nodes[next_state]['out_signal']
+                    out_signal = edge[OUT_SIGNAL] if option == Types.Mealy.value else graph.nodes[next_state][OUT_SIGNAL]
                     output_sequence.append(out_signal)
                     break
+        
+        if next_state == None:
+            output_sequence.append(EMPTY)
+            print(f'Invalid input sequence or final state reached')
+            break
             
         current_state = next_state
         
@@ -101,6 +113,8 @@ def execute(execute_file, option):
     output_type = option.split('-')[2]
     command = ['python3', execute_file] if execute_file.endswith('py') else [execute_file]
 
+    print(f'Option {option} testing')
+
     for i in range(len(os.listdir(f'..\{folder_name}\sequence'))): 
         sequence = f'..\{folder_name}\sequence\input{i}.csv'
         in_path = f'..\{folder_name}\input\input{i}.csv'
@@ -115,8 +129,8 @@ def execute(execute_file, option):
         output_path = f'..\{folder_name}\graphs\output{i}.png'
         output_graph = read_state_machine(output_type, output)
 
-        check(sequence, output_graph, output_type, i)
         draw_graph(output_path, output_graph, output_type)
+        check(sequence, output_graph, output_type, i)
 
 def exit_help():
     print('lab1.py <execute file> <mealy-to-moore|moore-to-mealy>')
