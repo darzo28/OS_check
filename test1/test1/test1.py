@@ -54,8 +54,8 @@ def read_state_machine(option, file):
 def read_sequence(file):
     with open(file, newline='\n') as f:
         reader = csv.reader(f, delimiter=';')
-        in_signals = reader.__next__()
-        out_signals = reader.__next__()
+        in_signals = [signal for signal in reader.__next__() if signal != '']
+        out_signals = [signal for signal in reader.__next__() if signal != '']
         return in_signals, out_signals
 
 def draw_graph(path, graph, option):
