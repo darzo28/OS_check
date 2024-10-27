@@ -105,18 +105,21 @@ def check(sequence, graph, option, order):
        
     if out_signals == out_sequence:
         print(f'Test {order} passed')
+        return 1;
     else:
         print(f'Test {order} failed')
+        return 0;
 
 def execute(execute_file, option):
-    i = 0
+    test_count = 0
+    passed_count = 0
     command = ['python3', execute_file] if execute_file.endswith('py') else [execute_file]
 
     print(f'Option {option} testing')
 
-    for input_file in os.listdir(f'..\{option}\sequence'): 
-        sequence = f'..\{option}\sequence\{input_file}'
-        in_path = f'..\{option}\input\{input_file}'
+    for i in range(len(os.listdir(f'..\{option}\sequence'))): 
+        sequence = f'..\{option}\sequence\input{i}.csv'
+        in_path = f'..\{option}\input\input{i}.csv'
         output = f'..\{option}\output\output{i}.csv'
 
         input_path = f'..\{option}\graphs\input{i}.png'
@@ -129,8 +132,10 @@ def execute(execute_file, option):
         output_graph = read_state_machine(option, output)
 
         draw_graph(output_path, output_graph, option)
-        check(sequence, output_graph, option, i)
-        i += 1
+        passed_count += check(sequence, output_graph, option, i)
+        test_count += 1
+
+    print(f'Option {option} testing result: {passed_count}/{test_count}')
 
 def exit_help():
     print('lab2.py <execute file> <mealy|moore>')
